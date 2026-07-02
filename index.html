@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Document Viewer</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <style>
+        /* স্ক্রিনের সব মার্জিন এবং ডিফল্ট প্যাডিং জিরো করা */
+        html, body {
+            margin: 0 !important;
+            padding: 0 !important;
+            width: 100%;
+            height: 100%;
+            overflow: hidden; /* স্ক্রলবার পুরোপুরি বন্ধ */
+            background-color: #f7fafc;
+            font-family: sans-serif;
+            touch-action: none;
+        }
+        
+        body {
+            display: block;
+        }
+
+        /* ইমেজটিকে একদম ওপরে জিরো গ্যাপে ফিক্সড করার ম্যাজিক সিএসএস */
+        #imagePreview {
+            width: 100% !important;
+            height: 100% !important;
+            object-fit: cover; /* ইমেজের ভেতরের বাড়তি সাদা অংশ কেটে স্ক্রিনে ফিট করবে */
+            object-position: top center; /* ইমেজটিকে একদম ওপর থেকে শুরু করতে বাধ্য করবে */
+            display: none;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+
+        /* লোডিং টেক্সট পজিশন */
+        #status {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 18px;
+            color: #4a5568;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="status">Loading...</div>
+    <img id="imagePreview" src="" alt="Document Preview">
+
+<script>
+    const secretKey = "MyGitHubSecureKey123";
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const encryptedData = urlParams.get('file');
+    const statusDiv = document.getElementById('status');
+    const imgPreview = document.getElementById('imagePreview');
+
+    if (encryptedData) {
+        try {
+            let formattedData = encryptedData.replace(/-/g, '+').replace(/_/g, '/');
+            
+            const bytes = CryptoJS.AES.decrypt(formattedData, secretKey);
+            const decryptedLink = bytes.toString(CryptoJS.enc.Utf8);
+
+            if (decryptedLink && decryptedLink.startsWith('http')) {
+                statusDiv.style.display = 'none';
+                imgPreview.src = decryptedLink;
+                imgPreview.style.display = 'block';
+            } else {
+                statusDiv.innerText = "Error: Invalid file link.";
+            }
+        } catch (e) {
+            statusDiv.innerText = "Error: Decryption failed.";
+        }
+    } else {
+        statusDiv.innerText = "Error: No file specified.";
+    }
+</script>
+
+</body>
+</html>
